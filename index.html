@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Messenger</title>
+<style>
+:root{--bg:#eef0f4;--panel:#fff;--ink:#111827;--mute:#6b7280;--line:#e5e7eb;--accent:#2f3e9e;--accent-ink:#fff;--mine:#2f3e9e;--mine-ink:#fff;--theirs:#f1f3f6;--side:#0f172a;--side-ink:#e5e7eb;--side-mute:#8b98ad;--side-hover:#1a2336;--side-on:#222d45;--side-line:#1e293b;--ring:rgba(47,62,158,.2);--shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root{--bg:#090b10;--panel:#12151c;--ink:#e5e7eb;--mute:#8b93a1;--line:#232936;--accent:#7c8cf0;--accent-ink:#0b0d12;--mine:#3b4cc0;--theirs:#1b2029;--side:#0b0e14;--side-hover:#151a24;--side-on:#1c2332;--side-line:#171c27;--ring:rgba(124,140,240,.25);--shadow:0 12px 32px rgba(0,0,0,.45)}}
+*{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:14.5px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+[hidden]{display:none!important}
+.app{display:flex;height:calc(100% - 32px);max-width:1080px;margin:16px auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.side{width:236px;background:var(--side);color:var(--side-ink);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.side h1{font-size:15px;font-weight:650;letter-spacing:.02em;margin:0;padding:20px 20px 14px;color:#fff}
+.sec{display:flex;justify-content:space-between;align-items:center;padding:18px 20px 6px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--side-mute)}
+.sec button{all:unset;cursor:pointer;font-size:17px;line-height:1;width:22px;height:22px;text-align:center;border-radius:6px;color:var(--side-mute)}
+.sec button:hover{background:var(--side-hover);color:#fff}
+.item{all:unset;box-sizing:border-box;width:calc(100% - 16px);margin:1px 8px;cursor:pointer;padding:7px 12px;border-radius:8px;color:var(--side-mute);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item:hover{background:var(--side-hover);color:var(--side-ink)}
+.item.on{background:var(--side-on);color:#fff;font-weight:600}
+.pop{padding:4px 12px 10px}
+.pop input{width:100%;box-sizing:border-box;font-size:13.5px;padding:8px 10px;background:var(--side-hover);border:1px solid var(--side-line);color:var(--side-ink);border-radius:8px}
+.pop input::placeholder{color:var(--side-mute)}
+.pop input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--ring)}
+.foot{margin-top:auto;padding:14px 20px;border-top:1px solid var(--side-line);font-size:13px;color:var(--side-ink);display:flex;justify-content:space-between;align-items:center}
+.foot button{all:unset;cursor:pointer;color:var(--side-mute);font-size:12.5px}
+.foot button:hover{color:#fff}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.head{padding:16px 24px;border-bottom:1px solid var(--line);font-weight:650;font-size:15px;letter-spacing:-.01em}
+.msgs{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:14px}
+.m{max-width:68%;display:flex;flex-direction:column;gap:4px}
+.m.me{align-self:flex-end;align-items:flex-end}
+.who{font-size:11.5px;color:var(--mute);display:flex;gap:10px;align-items:center}
+.del{all:unset;cursor:pointer;opacity:0;transition:opacity .15s}
+.m:hover .del,.del:focus{opacity:1}
+.del:hover{color:#dc2626}
+@media (hover:none){.del{opacity:1}}
+.bub{background:var(--theirs);padding:9px 14px;border-radius:14px 14px 14px 4px;overflow-wrap:anywhere;white-space:pre-wrap}
+.me .bub{background:var(--mine);color:var(--mine-ink);border-radius:14px 14px 4px 14px}
+.empty{margin:auto;color:var(--mute);text-align:center;padding:24px}
+.hint{font-size:12px;color:var(--mute);text-align:center}
+input{padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);font:inherit;min-width:0}
+input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--ring)}
+form#f{display:flex;gap:10px;padding:14px 24px 20px}
+form#f input{flex:1;background:var(--theirs);border-color:transparent}
+form#f input:focus{background:var(--panel);border-color:var(--accent)}
+.btn{padding:11px 22px;border:0;border-radius:12px;background:var(--accent);color:var(--accent-ink);font:inherit;font-weight:600;cursor:pointer;transition:filter .15s}
+.btn:hover{filter:brightness(1.08)}
+.btn.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.alt:hover{background:var(--theirs);filter:none}
+.btn:disabled{opacity:.5}
+.gate{max-width:380px;margin:12vh auto;padding:36px 32px;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px}
+.gate h1{margin:0 0 6px;font-size:22px;font-weight:650;letter-spacing:-.02em}
+.gate .row{display:flex;gap:10px}.gate .row .btn{flex:1}
+.err{color:#dc2626;font-size:13px;min-height:1em}
+@media (max-width:700px){.app{margin:0;height:100%;border-radius:0;border:0;box-shadow:none}.side{width:128px}.item{padding:7px 10px}.m{max-width:88%}.msgs{padding:16px}.head{padding:14px 16px}form#f{padding:12px 16px 16px}}
+</style>
+</head>
+<body>
+
+<!-- 1) Paste your Supabase values here (Project Settings > API) -->
+<script>
+const SUPABASE_URL = "https://ldfwcmygytdjhgdhdrnw.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkZndjbXlneXRkamhnZGhkcm53Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMzMjQ2NDMsImV4cCI6MjEwODkwMDY0M30.TXR-9YIDDkkZGXbPy8YUPE5ZdGajMsGP0iYnBUG1X88";
+</script>
+
+<div class="gate" id="gate" hidden>
+  <h1>Messenger</h1>
+  <div id="g-auth">
+    <input id="em" type="email" placeholder="Email" autocomplete="email" style="width:100%;box-sizing:border-box;margin-bottom:10px">
+    <input id="pw" type="password" placeholder="Password (6+ characters)" autocomplete="current-password" style="width:100%;box-sizing:border-box;margin-bottom:10px">
+    <div class="row"><button class="btn" id="signin">Sign in</button><button class="btn alt" id="signup">Create account</button></div>
+  </div>
+  <div id="g-name" hidden>
+    <p style="margin:0 0 10px;color:var(--mute)">Pick a username your friends will see.</p>
+    <input id="un" placeholder="Username" maxlength="24" style="width:100%;box-sizing:border-box;margin-bottom:10px">
+    <button class="btn" id="saveun" style="width:100%">Continue</button>
+  </div>
+  <div class="err" id="err"></div>
+</div>
+
+<div class="app" id="app" hidden>
+  <nav class="side">
+    <h1>Messenger</h1>
+    <div class="sec">Channels <button id="addc" aria-label="New channel">+</button></div>
+    <div class="pop" id="popc" hidden><input id="cn" placeholder="Channel name" maxlength="30" autocomplete="off"></div>
+    <div id="chs"></div>
+    <div class="sec">Direct messages <button id="addd" aria-label="New direct message">+</button></div>
+    <div class="pop" id="popd" hidden><input id="dq" placeholder="Search people" autocomplete="off"><div id="res"></div></div>
+    <div id="dms"></div>
+    <div class="foot"><span id="me"></span><button id="out">Sign out</button></div>
+  </nav>
+  <section class="main">
+    <div class="head" id="ch"></div>
+    <div class="msgs" id="msgs"></div>
+    <div class="err" id="serr" style="padding:0 16px"></div>
+    <form id="f"><input id="t" placeholder="Write a message" autocomplete="off" maxlength="1000"><button class="btn">Send</button></form>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const configured = !SUPABASE_URL.startsWith("PASTE") && !SUPABASE_ANON_KEY.startsWith("PASTE");
+let sb, me = null, profiles = {}, channels = [], msgs = [], cur = { type: "ch", id: "general" };
+const nameOf = id => (profiles[id] && profiles[id].username) || "Someone";
+
+function show(which){ $("gate").hidden = which !== "gate"; $("app").hidden = which !== "app"; }
+function err(t){ $("err").textContent = t || ""; }
+
+async function boot(){
+  show("gate");
+  if (!configured){ err("Add your Supabase URL and key at the top of the file first."); return; }
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const { data } = await sb.auth.getSession();
+  if (data.session) await afterAuth(data.session.user);
+}
+async function auth(kind){
+  err("");
+  const email = $("em").value.trim(), password = $("pw").value;
+  if (!email || password.length < 6){ err("Enter an email and a password of 6+ characters."); return; }
+  const fn = kind === "up" ? sb.auth.signUp : sb.auth.signInWithPassword;
+  const { data, error } = await fn.call(sb.auth, { email, password });
+  if (error){ err(error.message); return; }
+  if (!data.session){ err("Check your email to confirm your account, then sign in."); return; }
+  await afterAuth(data.session.user);
+}
+async function afterAuth(u){
+  me = u.id;
+  await loadProfiles();
+  if (!profiles[me]){ $("g-auth").hidden = true; $("g-name").hidden = false; return; }
+  start();
+}
+async function loadProfiles(){
+  const { data } = await sb.from("profiles").select("id,username");
+  (data || []).forEach(p => profiles[p.id] = p);
+}
+async function saveName(){
+  err("");
+  const username = $("un").value.trim();
+  if (username.length < 2){ err("Username needs at least 2 characters."); return; }
+  const { error } = await sb.from("profiles").insert({ id: me, username });
+  if (error){ err(error.code === "23505" ? "That username is taken." : error.message); return; }
+  profiles[me] = { id: me, username };
+  start();
+}
+
+async function start(){
+  show("app");
+  $("me").textContent = nameOf(me);
+  const [c, m] = await Promise.all([
+    sb.from("channels").select("name").order("name"),
+    sb.from("messages").select("*").order("created_at", { ascending: false }).limit(500)
+  ]);
+  channels = (c.data || []).map(x => x.name);
+  msgs = (m.data || []).reverse();
+  sb.channel("live")
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, p => addMsg(p.new))
+    .on("postgres_changes", { event: "DELETE", schema: "public", table: "messages" }, p => { msgs = msgs.filter(x => x.id !== p.old.id); render(); })
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "channels" }, p => { if (!channels.includes(p.new.name)) { channels.push(p.new.name); render(); } })
+    .subscribe();
+  render();
+}
+async function addMsg(m){
+  if (msgs.some(x => x.id === m.id)) return;
+  if (!profiles[m.sender_id]) await loadProfiles();
+  msgs.push(m); render();
+}
+
+function dmPeers(){
+  const s = new Set(); msgs.forEach(m => { if (m.recipient_id) s.add(m.sender_id === me ? m.recipient_id : m.sender_id); });
+  if (cur.type === "dm") s.add(cur.id);
+  return [...s];
+}
+function item(label, on, fn){
+  const b = document.createElement("button"); b.className = "item" + (on ? " on" : ""); b.textContent = label; b.onclick = fn; return b;
+}
+function render(){
+  $("chs").textContent = ""; $("dms").textContent = "";
+  channels.forEach(c => $("chs").appendChild(item("# " + c, cur.type === "ch" && cur.id === c, () => { cur = { type: "ch", id: c }; render(); })));
+  dmPeers().forEach(p => $("dms").appendChild(item(p === me ? "You (notes)" : nameOf(p), cur.type === "dm" && cur.id === p, () => { cur = { type: "dm", id: p }; render(); })));
+  const dm = cur.type === "dm";
+  $("ch").textContent = dm ? (cur.id === me ? "Notes to self" : nameOf(cur.id)) : "# " + cur.id;
+  const list = msgs.filter(m => dm
+    ? m.recipient_id && ((m.sender_id === me && m.recipient_id === cur.id) || (m.sender_id === cur.id && m.recipient_id === me))
+    : !m.recipient_id && m.channel === cur.id);
+  const box = $("msgs");
+  const stick = box.scrollHeight - box.scrollTop - box.clientHeight < 80 || box.dataset.k !== cur.type + cur.id;
+  box.textContent = "";
+  if (!list.length){ const d = document.createElement("div"); d.className = "empty"; d.textContent = dm ? "No messages yet. Say hello." : "No messages here yet. Start the conversation."; box.appendChild(d); }
+  list.forEach(m => {
+    const mine = m.sender_id === me;
+    const w = document.createElement("div"); w.className = "m" + (mine ? " me" : "");
+    const who = document.createElement("div"); who.className = "who";
+    const lab = document.createElement("span");
+    lab.textContent = (mine ? "You" : nameOf(m.sender_id)) + " · " + new Date(m.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    who.appendChild(lab);
+    if (mine){ const d = document.createElement("button"); d.className = "del"; d.textContent = "Delete"; d.onclick = () => del(m.id); who.appendChild(d); }
+    const b = document.createElement("div"); b.className = "bub"; b.textContent = m.body;
+    w.append(who, b); box.appendChild(w);
+  });
+  if (stick){ box.scrollTop = box.scrollHeight; box.dataset.k = cur.type + cur.id; }
+}
+async function del(id){
+  const { error } = await sb.from("messages").delete().eq("id", id);
+  if (!error){ msgs = msgs.filter(x => x.id !== id); render(); }
+}
+
+$("signin").onclick = () => auth("in");
+$("signup").onclick = () => auth("up");
+$("saveun").onclick = saveName;
+$("out").onclick = async () => { await sb.auth.signOut(); location.reload(); };
+
+$("f").addEventListener("submit", async e => {
+  e.preventDefault();
+  const body = $("t").value.trim(); if (!body) return;
+  $("t").value = "";
+  const dm = cur.type === "dm";
+  const { data, error } = await sb.from("messages")
+    .insert({ channel: dm ? null : cur.id, sender_id: me, recipient_id: dm ? cur.id : null, body }).select().single();
+  if (error){ $("t").value = body; $("serr").textContent = "Couldn’t send: " + (error.code || "") + " " + error.message; return; }
+  $("serr").textContent = "";
+  addMsg(data);
+});
+
+$("addc").onclick = () => { $("popc").hidden = !$("popc").hidden; $("cn").focus(); };
+$("cn").addEventListener("keydown", async e => {
+  if (e.key !== "Enter") return;
+  const name = $("cn").value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 30);
+  if (!name) return;
+  $("cn").value = ""; $("popc").hidden = true;
+  if (!channels.includes(name)){
+    const { error } = await sb.from("channels").insert({ name });
+    if (error) return;
+    channels.push(name);
+  }
+  cur = { type: "ch", id: name }; render();
+});
+$("addd").onclick = () => { $("popd").hidden = !$("popd").hidden; $("dq").focus(); };
+$("dq").addEventListener("input", async () => {
+  await loadProfiles();
+  const q = $("dq").value.trim().toLowerCase(), r = $("res"); r.textContent = "";
+  if (!q) return;
+  Object.values(profiles).filter(p => p.id !== me && p.username.toLowerCase().includes(q)).slice(0, 6).forEach(p =>
+    r.appendChild(item(p.username, false, () => { cur = { type: "dm", id: p.id }; $("popd").hidden = true; $("dq").value = ""; r.textContent = ""; render(); })));
+});
+
+boot();
+</script>
+</body>
+</html>
